@@ -21,10 +21,11 @@ func (e recordsArray) encode(pe packetEncoder) error {
 func (e recordsArray) decode(pd packetDecoder) error {
 	records := make([]Record, len(e))
 	for i := range e {
-		if err := records[i].decode(pd); err != nil {
+		rec := &records[i]
+		if err := rec.decode(pd); err != nil {
 			return err
 		}
-		e[i] = &records[i]
+		e[i] = rec
 	}
 	return nil
 }
