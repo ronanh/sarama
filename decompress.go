@@ -75,7 +75,7 @@ func decompress(cc CompressionCodec, data []byte) ([]byte, error) {
 }
 
 const (
-	newBufDefaultInitSize = 512 * 1024
+	newBufDefaultInitSize = 2 * 1024 * 1024
 )
 
 type byteBuffer struct {
