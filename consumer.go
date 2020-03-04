@@ -524,8 +524,8 @@ func (child *partitionConsumer) parseMessages(msgSet *MessageSet) ([]*ConsumerMe
 }
 
 func (child *partitionConsumer) parseRecords(batch *RecordBatch) ([]*ConsumerMessage, error) {
-	messagesArray := make([]ConsumerMessage, len(batch.Records), len(batch.Records))
-	messages := make([]*ConsumerMessage, len(batch.Records), len(batch.Records))
+	messagesArray := make([]ConsumerMessage, len(batch.Records))
+	messages := make([]*ConsumerMessage, len(batch.Records))
 
 	for i, rec := range batch.Records {
 		offset := batch.FirstOffset + rec.OffsetDelta
