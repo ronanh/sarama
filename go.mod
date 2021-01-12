@@ -13,7 +13,7 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/jcmturner/gofork v1.0.0
-	github.com/klauspost/compress v1.11.4
+	github.com/klauspost/compress v1.11.6
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pierrec/lz4 v2.6.0+incompatible
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
