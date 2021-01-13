@@ -4,105 +4,87 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	"sync"
 
 	snappy "github.com/eapache/go-xerial-snappy"
 	"github.com/pierrec/lz4"
 )
 
-var (
-	lz4WriterPool = sync.Pool{
-		New: func() interface{} {
-			return lz4.NewWriter(nil)
-		},
-	}
+const (
+	writerPoolSize = 16
+)
 
-	gzipWriterPool = sync.Pool{
-		New: func() interface{} {
-			return gzip.NewWriter(nil)
-		},
-	}
-	gzipWriterPoolForCompressionLevel1 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 1)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
-	gzipWriterPoolForCompressionLevel2 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 2)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
-	gzipWriterPoolForCompressionLevel3 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 3)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
-	gzipWriterPoolForCompressionLevel4 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 4)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
-	gzipWriterPoolForCompressionLevel5 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 5)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
-	gzipWriterPoolForCompressionLevel6 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 6)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
-	gzipWriterPoolForCompressionLevel7 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 7)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
-	gzipWriterPoolForCompressionLevel8 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 8)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
-	gzipWriterPoolForCompressionLevel9 = sync.Pool{
-		New: func() interface{} {
-			gz, err := gzip.NewWriterLevel(nil, 9)
-			if err != nil {
-				panic(err)
-			}
-			return gz
-		},
-	}
+var (
+	lz4WriterPool = NewCloserPool(writerPoolSize, func() interface{} {
+		return lz4.NewWriter(nil)
+	})
+
+	gzipWriterPool = NewCloserPool(writerPoolSize, func() interface{} {
+		return gzip.NewWriter(nil)
+	})
+	gzipWriterPoolForCompressionLevel1 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 1)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
+
+	gzipWriterPoolForCompressionLevel2 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 2)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
+	gzipWriterPoolForCompressionLevel3 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 3)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
+	gzipWriterPoolForCompressionLevel4 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 4)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
+	gzipWriterPoolForCompressionLevel5 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 5)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
+	gzipWriterPoolForCompressionLevel6 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 6)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
+	gzipWriterPoolForCompressionLevel7 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 7)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
+	gzipWriterPoolForCompressionLevel8 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 8)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
+	gzipWriterPoolForCompressionLevel9 = NewCloserPool(writerPoolSize, func() interface{} {
+		gz, err := gzip.NewWriterLevel(nil, 9)
+		if err != nil {
+			panic(err)
+		}
+		return gz
+	})
 )
 
 func compress(cc CompressionCodec, level int, data []byte) ([]byte, error) {
@@ -187,7 +169,7 @@ func compress(cc CompressionCodec, level int, data []byte) ([]byte, error) {
 		}
 		return buf.Bytes(), nil
 	case CompressionZSTD:
-		return zstdCompress(data)
+		return zstdCompress(nil, data)
 	default:
 		return nil, PacketEncodingError{fmt.Sprintf("unsupported compression codec (%d)", cc)}
 	}
